@@ -1,9 +1,11 @@
 import networkx as nx
+from database.dao import DAO
 
 class Model:
     def __init__(self):
         """Definire le strutture dati utili"""
         # TODO
+        self.G=nx.Graph()
 
     def build_weighted_graph(self, year: int):
         """
@@ -12,6 +14,19 @@ class Model:
         Il peso del grafo è dato dal prodotto "distanza * fattore_difficolta"
         """
         # TODO
+        # pulisco il grafo
+        self.G.clear()
+
+        connessioni=DAO.readConnessioniAnno(year)
+        if connessioni is None:
+            print('Non sono presenti rifugi connessi')
+        else:
+            for connessione in connessioni:
+                id1=connessione.id_rifugio1
+                id2=connessione.id_rifugio2
+                self.G.add_edge(id1, id2,peso=connessione.calcola_peso())
+
+
 
     def get_edges_weight_min_max(self):
         """
@@ -20,6 +35,11 @@ class Model:
         :return: il peso massimo degli archi nel grafo
         """
         # TODO
+        pesi=[]
+        for u,v,attr in self.G.edges(data=True):
+            p=attr['peso']
+            pesi.append(p)
+        return min(pesi), max(pesi)
 
     def count_edges_by_threshold(self, soglia):
         """
@@ -29,6 +49,17 @@ class Model:
         :return maggiori: archi con peso > soglia
         """
         # TODO
+        minori=[]
+        maggiori=[]
+        for u,v,attr in self.G.edges(data=True):
+            p=attr['peso']
+            if p < soglia:
+                minori.append(p)
+            if p > soglia:
+                maggiori.append(p)
+
+        return len(minori), len(maggiori)
+
 
     """Implementare la parte di ricerca del cammino minimo"""
-    # TODO
+
